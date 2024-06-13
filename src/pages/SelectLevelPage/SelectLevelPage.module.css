@@ -62,3 +62,14 @@
 .levelLink:visited {
   color: #0080c1;
 }
+
+.modeContainer {
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 4px;
+  color: #004980;
+  text-align: center;
+  font-variant-numeric: lining-nums proportional-nums;
+  font-family: StratosSkyeng;
+  font-size: 24px;
+}

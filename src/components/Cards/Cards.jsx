@@ -52,7 +52,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
   const [gameEndDate, setGameEndDate] = useState(null);
 
   // Количество жизней
-  const [gameLives, setGameLives] = useState(lives);
+  const [gameLives, setGameLives] = useState(lives > 0 ? lives : 1);
 
   const [previousCardIndex, setPreviousCardIndex] = useState();
   // Стейт для таймера, высчитывается в setInteval на основе gameStartDate и gameEndDate
@@ -60,6 +60,8 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
     seconds: 0,
     minutes: 0,
   });
+
+  // const base = process.env.PUBLIC_URL;
 
   function finishGame(status = STATUS_LOST) {
     setGameEndDate(new Date());
@@ -76,7 +78,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
     setGameStartDate(null);
     setGameEndDate(null);
     setTimer(getTimerValue(null, null));
-    setGameLives(lives);
+    setGameLives(lives > 0 ? lives : 1);
     setStatus(STATUS_PREVIEW);
   }
 
@@ -195,6 +197,11 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
     };
   }, [gameStartDate, gameEndDate]);
 
+  const hearts = [];
+  for (let i = 1; i <= gameLives; i++) {
+    hearts.push(<img className={styles.live} src={`${process.env.PUBLIC_URL}/logo192.png`} alt="live" />);
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -219,7 +226,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
           )}
         </div>
         {status === STATUS_IN_PROGRESS ? <Button onClick={resetGame}>Начать заново</Button> : null}
-        <p>{gameLives} жизнь</p>
+        <div className={styles.gameLives}>{hearts}</div>
       </div>
 
       <div className={styles.cards}>

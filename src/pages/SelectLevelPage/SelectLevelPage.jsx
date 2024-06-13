@@ -26,7 +26,7 @@ export function SelectLevelPage() {
             </Link>
           </li>
         </ul>
-        <div>
+        <div className={styles.modeContainer}>
           <input
             type="checkbox"
             name="easy-mode"
@@ -34,7 +34,7 @@ export function SelectLevelPage() {
             checked={easyMode}
             onChange={event => setEasyMode(!easyMode)}
           />
-          <label htmlFor="easy-mode">3 жизни</label>
+          <label htmlFor="easy-mode">Режим "3 жизни"</label>
         </div>
       </div>
     </div>
