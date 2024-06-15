@@ -40,7 +40,7 @@ function getTimerValue(startDate, endDate) {
  * pairsCount - сколько пар будет в игре
  * previewSeconds - сколько секунд пользователь будет видеть все карты открытыми до начала игры
  */
-export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
+export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
   // В cards лежит игровое поле - массив карт и их состояние открыта\закрыта
   const [cards, setCards] = useState([]);
   // Текущий статус игры
@@ -51,11 +51,17 @@ export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
   // Дата конца игры
   const [gameEndDate, setGameEndDate] = useState(null);
 
+  // Количество жизней
+  const [gameLives, setGameLives] = useState(lives > 0 ? lives : 1);
+
+  const [previousCardIndex, setPreviousCardIndex] = useState();
   // Стейт для таймера, высчитывается в setInteval на основе gameStartDate и gameEndDate
   const [timer, setTimer] = useState({
     seconds: 0,
     minutes: 0,
   });
+
+  // const base = process.env.PUBLIC_URL;
 
   function finishGame(status = STATUS_LOST) {
     setGameEndDate(new Date());
@@ -72,6 +78,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
     setGameStartDate(null);
     setGameEndDate(null);
     setTimer(getTimerValue(null, null));
+    setGameLives(lives > 0 ? lives : 1);
     setStatus(STATUS_PREVIEW);
   }
 
@@ -87,10 +94,15 @@ export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
     if (clickedCard.open) {
       return;
     }
+
+    let currentIndex = null;
     // Игровое поле после открытия кликнутой карты
-    const nextCards = cards.map(card => {
+    const nextCards = cards.map((card, index) => {
       if (card.id !== clickedCard.id) {
         return card;
+      } else {
+        currentIndex = index;
+        setPreviousCardIndex(index);
       }
 
       return {
@@ -124,11 +136,24 @@ export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
     });
 
     const playerLost = openCardsWithoutPair.length >= 2;
-
     // "Игрок проиграл", т.к на поле есть две открытые карты без пары
     if (playerLost) {
-      finishGame(STATUS_LOST);
-      return;
+      const newCards = [...cards];
+      const firstCard = { ...newCards[currentIndex], open: false };
+      const secondCard = { ...newCards[previousCardIndex], open: false };
+      newCards[currentIndex] = firstCard;
+      newCards[previousCardIndex] = secondCard;
+
+      setTimeout(() => {
+        setGameLives(gameLives => gameLives - 1);
+        setCards(newCards);
+        setPreviousCardIndex(null);
+
+        if (gameLives - 1 === 0) {
+          finishGame(STATUS_LOST);
+          return;
+        }
+      }, 500);
     }
 
     // ... игра продолжается
@@ -172,6 +197,11 @@ export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
     };
   }, [gameStartDate, gameEndDate]);
 
+  const hearts = [];
+  for (let i = 1; i <= gameLives; i++) {
+    hearts.push(<img className={styles.live} src={`${process.env.PUBLIC_URL}/logo192.png`} alt="live" />);
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -196,6 +226,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
           )}
         </div>
         {status === STATUS_IN_PROGRESS ? <Button onClick={resetGame}>Начать заново</Button> : null}
+        <div className={styles.gameLives}>{hearts}</div>
       </div>
 
       <div className={styles.cards}>
