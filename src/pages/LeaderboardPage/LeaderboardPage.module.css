@@ -1,0 +1,74 @@
+.wrapper {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  max-height: 100vh;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.pageTitle {
+  font-family: StratosSkyeng;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 32px;
+  color: rgb(255, 255, 255);
+  user-select: none;
+}
+
+.leaderboardWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  border-radius: 12px;
+  padding-right: 4px;
+}
+
+.leaderboardWrapper::-webkit-scrollbar {
+  width: 5px;
+}
+
+.leaderboardWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.leaderboardWrapper::-webkit-scrollbar-thumb {
+  background: #7ac100;
+  border-radius: 2px;
+}
+
+.leaderboardCard {
+  display: grid;
+  gap: 66px;
+  grid-template-columns: 178px 1fr 102px;
+  padding: 16px 20px;
+  background: #fff;
+  border-radius: 12px;
+  font-size: 24px;
+}
+
+.leaderboardText {
+  font-family: StratosSkyeng;
+  font-weight: 400;
+  line-height: 32px;
+  letter-spacing: 0%;
+  user-select: none;
+}
+
+.leaderboardCardTitle {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.leaderboardTitleText {
+  color: rgb(153, 153, 153);
+}
