@@ -41,7 +41,7 @@ export function SelectLevelPage() {
             Режим "3 жизни"
           </label>
         </div>
-        <Link to={`/game/${selectedDifficult}/${lives}`}>
+        <Link to={`/game/${selectedDifficult * 3}/${lives}`}>
           <Button>Начать игру</Button>
         </Link>
         <Link to={`/leaderboard`}>

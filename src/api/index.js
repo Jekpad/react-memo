@@ -8,3 +8,17 @@ export async function getLeaderBoard() {
 
   return result;
 }
+
+export async function setLeader({ name, time }) {
+  let result = await fetch(`https://wedev-api.sky.pro/api/leaderboard`, {
+    method: "POST",
+    body: JSON.stringify({
+      name: name,
+      time: time,
+    }),
+  });
+
+  if (!result.ok) {
+    throw Error("Ошибка отправки данных");
+  }
+}

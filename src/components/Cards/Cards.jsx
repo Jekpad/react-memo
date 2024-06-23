@@ -5,6 +5,9 @@ import styles from "./Cards.module.css";
 import { EndGameModal } from "../../components/EndGameModal/EndGameModal";
 import { Button } from "../../components/Button/Button";
 import { Card } from "../../components/Card/Card";
+import { getTimerValue } from "../../utils/getTimerValue";
+import EndGameModalLeader from "../EndGameModal/EndGameModalLeader";
+import { useLeaderboard } from "../../hooks/useLeaderboard";
 
 // Игра закончилась
 const STATUS_LOST = "STATUS_LOST";
@@ -13,27 +16,6 @@ const STATUS_WON = "STATUS_WON";
 const STATUS_IN_PROGRESS = "STATUS_IN_PROGRESS";
 // Начало игры: игрок видит все карты в течении нескольких секунд
 const STATUS_PREVIEW = "STATUS_PREVIEW";
-
-function getTimerValue(startDate, endDate) {
-  if (!startDate && !endDate) {
-    return {
-      minutes: 0,
-      seconds: 0,
-    };
-  }
-
-  if (endDate === null) {
-    endDate = new Date();
-  }
-
-  const diffInSecconds = Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
-  const minutes = Math.floor(diffInSecconds / 60);
-  const seconds = diffInSecconds % 60;
-  return {
-    minutes,
-    seconds,
-  };
-}
 
 /**
  * Основной компонент игры, внутри него находится вся игровая механика и логика.
@@ -54,7 +36,11 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
   // Количество жизней
   const [gameLives, setGameLives] = useState(lives > 0 ? lives : 1);
 
+  // Прерыдущая открытая карта, которую необходимо будет перевернуть обратно
   const [previousCardIndex, setPreviousCardIndex] = useState();
+
+  const { isTopTen, checkIsTopTen } = useLeaderboard();
+
   // Стейт для таймера, высчитывается в setInteval на основе gameStartDate и gameEndDate
   const [timer, setTimer] = useState({
     seconds: 0,
@@ -65,6 +51,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
 
   function finishGame(status = STATUS_LOST) {
     setGameEndDate(new Date());
+    checkIsTopTen(timer.minutes * 60 + timer.seconds);
     setStatus(status);
   }
   function startGame() {
@@ -227,6 +214,13 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
         </div>
         {status === STATUS_IN_PROGRESS ? <Button onClick={resetGame}>Начать заново</Button> : null}
         <div className={styles.gameLives}>{hearts}</div>
+        <Button
+          onClick={() => {
+            finishGame(STATUS_WON);
+          }}
+        >
+          WIN
+        </Button>
       </div>
 
       <div className={styles.cards}>
@@ -243,12 +237,20 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
 
       {isGameEnded ? (
         <div className={styles.modalContainer}>
-          <EndGameModal
-            isWon={status === STATUS_WON}
-            gameDurationSeconds={timer.seconds}
-            gameDurationMinutes={timer.minutes}
-            onClick={resetGame}
-          />
+          {status === STATUS_WON && lives === 1 && pairsCount >= 9 && isTopTen ? (
+            <EndGameModalLeader
+              gameDurationSeconds={timer.seconds}
+              gameDurationMinutes={timer.minutes}
+              onClick={resetGame}
+            />
+          ) : (
+            <EndGameModal
+              isWon={status === STATUS_WON}
+              gameDurationSeconds={timer.seconds}
+              gameDurationMinutes={timer.minutes}
+              onClick={resetGame}
+            />
+          )}
         </div>
       ) : null}
     </div>
