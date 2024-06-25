@@ -10,7 +10,7 @@ export const useLeaderboard = () => {
       try {
         const data = await getLeaderBoard();
         const rawLeaders = data.leaders.sort((a, b) => a.time - b.time);
-        setLeaders([...rawLeaders]);
+        setLeaders(rawLeaders.slice(0, 10));
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : "Произошла непредвиденная ошибка. Обновите страницу";
         console.log(errMsg);

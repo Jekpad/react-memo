@@ -6,8 +6,6 @@ import { EndGameModal } from "../../components/EndGameModal/EndGameModal";
 import { Button } from "../../components/Button/Button";
 import { Card } from "../../components/Card/Card";
 import { getTimerValue } from "../../utils/getTimerValue";
-import EndGameModalLeader from "../EndGameModal/EndGameModalLeader";
-import { useLeaderboard } from "../../hooks/useLeaderboard";
 
 // Игра закончилась
 const STATUS_LOST = "STATUS_LOST";
@@ -39,19 +37,14 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
   // Прерыдущая открытая карта, которую необходимо будет перевернуть обратно
   const [previousCardIndex, setPreviousCardIndex] = useState();
 
-  const { isTopTen, checkIsTopTen } = useLeaderboard();
-
   // Стейт для таймера, высчитывается в setInteval на основе gameStartDate и gameEndDate
   const [timer, setTimer] = useState({
     seconds: 0,
     minutes: 0,
   });
 
-  // const base = process.env.PUBLIC_URL;
-
   function finishGame(status = STATUS_LOST) {
     setGameEndDate(new Date());
-    checkIsTopTen(timer.minutes * 60 + timer.seconds);
     setStatus(status);
   }
   function startGame() {
@@ -186,7 +179,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
 
   const hearts = [];
   for (let i = 1; i <= gameLives; i++) {
-    hearts.push(<img className={styles.live} src={`${process.env.PUBLIC_URL}/logo192.png`} alt="live" />);
+    hearts.push(<img key={i} className={styles.live} src={`${process.env.PUBLIC_URL}/logo192.png`} alt="live" />);
   }
 
   return (
@@ -212,15 +205,19 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
             </>
           )}
         </div>
-        {status === STATUS_IN_PROGRESS ? <Button onClick={resetGame}>Начать заново</Button> : null}
-        <div className={styles.gameLives}>{hearts}</div>
-        <Button
-          onClick={() => {
-            finishGame(STATUS_WON);
-          }}
-        >
-          WIN
-        </Button>
+        {status === STATUS_IN_PROGRESS && (
+          <Button
+            onClick={() => {
+              finishGame(STATUS_WON);
+            }}
+          >
+            WIN
+          </Button>
+        )}
+        <div className={styles.headerContainer}>
+          <div className={styles.gameLives}>{hearts}</div>
+          {status === STATUS_IN_PROGRESS && <Button onClick={resetGame}>Начать заново</Button>}
+        </div>
       </div>
 
       <div className={styles.cards}>
@@ -237,20 +234,13 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
 
       {isGameEnded ? (
         <div className={styles.modalContainer}>
-          {status === STATUS_WON && lives === 1 && pairsCount >= 9 && isTopTen ? (
-            <EndGameModalLeader
-              gameDurationSeconds={timer.seconds}
-              gameDurationMinutes={timer.minutes}
-              onClick={resetGame}
-            />
-          ) : (
-            <EndGameModal
-              isWon={status === STATUS_WON}
-              gameDurationSeconds={timer.seconds}
-              gameDurationMinutes={timer.minutes}
-              onClick={resetGame}
-            />
-          )}
+          <EndGameModal
+            isWon={status === STATUS_WON}
+            isLeaderboard={pairsCount >= 9}
+            gameDurationSeconds={timer.seconds}
+            gameDurationMinutes={timer.minutes}
+            onClick={resetGame}
+          />
         </div>
       ) : null}
     </div>

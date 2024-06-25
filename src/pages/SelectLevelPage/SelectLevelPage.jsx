@@ -3,13 +3,21 @@ import styles from "./SelectLevelPage.module.css";
 import { useState } from "react";
 import { Button } from "../../components/Button/Button";
 import classNames from "classnames";
+import { useLivesContext } from "../../contexts/LivesContext";
 
 const DIFFICULTS = [1, 2, 3];
 
 export function SelectLevelPage() {
   const [selectedDifficult, setSelectedDifficult] = useState(1);
-  const [easyMode, setEasyMode] = useState(false);
-  const lives = easyMode ? 3 : 1;
+  const { lives, setLives } = useLivesContext();
+
+  const toggleGameMode = () => {
+    if (lives === 1) {
+      setLives(3);
+    } else {
+      setLives(1);
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -34,14 +42,14 @@ export function SelectLevelPage() {
             type="checkbox"
             name="easy-mode"
             id="easy-mode"
-            checked={easyMode}
-            onChange={() => setEasyMode(!easyMode)}
+            checked={lives === 3}
+            onChange={toggleGameMode}
           />
           <label className={styles.easyModeText} htmlFor="easy-mode">
             Режим "3 жизни"
           </label>
         </div>
-        <Link to={`/game/${selectedDifficult * 3}/${lives}`}>
+        <Link to={`/game/${selectedDifficult * 3}`}>
           <Button>Начать игру</Button>
         </Link>
         <Link to={`/leaderboard`}>

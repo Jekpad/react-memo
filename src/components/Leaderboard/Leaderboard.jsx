@@ -16,7 +16,7 @@ const Leaderboard = () => {
       <div className={styles.leaderboardWrapper}>
         {Array.isArray(leaders) ? (
           leaders.map((leader, index) => (
-            <div className={styles.leaderboardCard} key={leader.key}>
+            <div className={styles.leaderboardCard} key={index}>
               <p className={styles.leaderboardText}>#{index + 1}</p>
               <p className={styles.leaderboardText}>{leader.name}</p>
               <p className={styles.leaderboardText}>{serializeTrackTime(leader.time)}</p>
