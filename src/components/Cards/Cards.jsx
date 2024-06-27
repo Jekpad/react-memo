@@ -205,7 +205,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
             </>
           )}
         </div>
-        {status === STATUS_IN_PROGRESS && (
+        {/* {status === STATUS_IN_PROGRESS && (
           <Button
             onClick={() => {
               finishGame(STATUS_WON);
@@ -213,7 +213,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
           >
             WIN
           </Button>
-        )}
+        )} */}
         <div className={styles.headerContainer}>
           <div className={styles.gameLives}>{hearts}</div>
           {status === STATUS_IN_PROGRESS && <Button onClick={resetGame}>Начать заново</Button>}
