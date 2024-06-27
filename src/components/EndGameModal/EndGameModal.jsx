@@ -8,8 +8,11 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { setLeader } from "../../api";
 
+import Icon from "../Icon/Icon";
+
 export function EndGameModal({ isWon, isLeaderboard, gameDurationSeconds, gameDurationMinutes, onClick }) {
   const [userName, setUserName] = useState("");
+  const [dataSave, setDataSave] = useState(false);
   const navigate = useNavigate();
 
   const title = isLeaderboard && isWon ? "Вы попали на лидерборд!" : isWon ? "Вы победили!" : "Вы проиграли!";
@@ -24,11 +27,17 @@ export function EndGameModal({ isWon, isLeaderboard, gameDurationSeconds, gameDu
       return;
     }
 
+    if (dataSave) {
+      onClick();
+      return;
+    }
+
     try {
       await setLeader({
         name: userName.length !== 0 ? userName : "Пользователь",
         time: parseInt(gameDurationMinutes * 60 + gameDurationSeconds),
       });
+      setDataSave(true);
       onClick();
     } catch (e) {
       let err = e instanceof Error ? e.message : "Ошибка записи!";
@@ -41,13 +50,16 @@ export function EndGameModal({ isWon, isLeaderboard, gameDurationSeconds, gameDu
       <img className={styles.image} src={imgSrc} alt={imgAlt} />
       <h2 className={styles.title}>{title}</h2>
       {isLeaderboard && isWon && (
-        <input
-          type="text"
-          placeholder="Ваше имя"
-          className={styles.leaderName}
-          value={userName}
-          onChange={e => setUserName(e.target.value)}
-        />
+        <div>
+          <input
+            type="text"
+            placeholder="Ваше имя"
+            className={styles.leaderName}
+            value={userName}
+            onChange={e => setUserName(e.target.value)}
+            disabled={dataSave}
+          />
+        </div>
       )}
       <p className={styles.description}>Затраченное время:</p>
       <div className={styles.time}>
@@ -55,11 +67,24 @@ export function EndGameModal({ isWon, isLeaderboard, gameDurationSeconds, gameDu
       </div>
 
       <div className={styles.buttonsContainer}>
+        {isLeaderboard && isWon && (
+          <>
+            <Button
+              onClick={() =>
+                saveResult(() => {
+                  return;
+                })
+              }
+            >
+              <Icon iconName={dataSave ? "thumb_up" : "save"} width={20} height={20} color={"#fff"} />
+              {dataSave ? "Сохранено" : "Сохранить"}
+            </Button>
+            <Button onClick={() => saveResult(() => navigate("/leaderboard"))}>К лидерборду</Button>
+          </>
+        )}
+
         <Button onClick={() => saveResult(onClick)}>Начать сначала</Button>
         <Button onClick={() => saveResult(() => navigate("/"))}>На главную</Button>
-        {isLeaderboard && isWon && (
-          <Button onClick={() => saveResult(() => navigate("/leaderboard"))}>К лидерборду</Button>
-        )}
       </div>
     </div>
   );

@@ -20,7 +20,7 @@ const STATUS_PREVIEW = "STATUS_PREVIEW";
  * pairsCount - сколько пар будет в игре
  * previewSeconds - сколько секунд пользователь будет видеть все карты открытыми до начала игры
  */
-export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
+export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
   // В cards лежит игровое поле - массив карт и их состояние открыта\закрыта
   const [cards, setCards] = useState([]);
   // Текущий статус игры
@@ -205,7 +205,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
             </>
           )}
         </div>
-        {/* {status === STATUS_IN_PROGRESS && (
+        {status === STATUS_IN_PROGRESS && (
           <Button
             onClick={() => {
               finishGame(STATUS_WON);
@@ -213,7 +213,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 5, lives = 1 }) {
           >
             WIN
           </Button>
-        )} */}
+        )}
         <div className={styles.headerContainer}>
           <div className={styles.gameLives}>{hearts}</div>
           {status === STATUS_IN_PROGRESS && <Button onClick={resetGame}>Начать заново</Button>}
