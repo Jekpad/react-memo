@@ -1,5 +1,5 @@
 export async function getLeaderBoard() {
-  let result = await fetch(`https://wedev-api.sky.pro/api/leaderboard`);
+  let result = await fetch(`https://wedev-api.sky.pro/api/v2/leaderboard`);
 
   if (!result.ok) {
     throw Error("Ошибка получения данных");
@@ -9,12 +9,13 @@ export async function getLeaderBoard() {
   return result;
 }
 
-export async function setLeader({ name, time }) {
-  let result = await fetch(`https://wedev-api.sky.pro/api/leaderboard`, {
+export async function setLeader({ name, time, achivments = [] }) {
+  let result = await fetch(`https://wedev-api.sky.pro/api/v2/leaderboard`, {
     method: "POST",
     body: JSON.stringify({
       name: name,
       time: time,
+      achivments: achivments,
     }),
   });
 
