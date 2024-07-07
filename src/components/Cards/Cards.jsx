@@ -210,7 +210,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
   // Обновляем значение таймера в интервале
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (status === STATUS_PAUSE || status === STATUS_WON || status === STATUS_LOST) return;
+      if ([STATUS_PAUSE, STATUS_WON, STATUS_LOST].includes(status)) return;
       setTimer(getTimerValue(gameStartDate, gameEndDate));
     }, 300);
 
@@ -248,7 +248,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
             </>
           )}
         </div>
-        {status === STATUS_IN_PROGRESS && (
+        {[STATUS_IN_PROGRESS, STATUS_PAUSE].includes(status) && (
           <>
             <div className={styles.powers}>
               <div className={styles.powerTooltip} onClick={handleSeeAll}>

@@ -89,7 +89,7 @@ export function EndGameModal({
                 })
               }
             >
-              <Icon iconName={dataSave ? "thumb_up" : "save"} width={20} height={20} color={"#fff"} />
+              <Icon iconName={dataSave ? "thumb_up" : "save"} width={"25px"} height={"25px"} color={"#fff"} />
               {dataSave ? "Сохранено" : "Сохранить"}
             </Button>
             <Button onClick={() => saveResult(() => navigate("/leaderboard"))}>К лидерборду</Button>
