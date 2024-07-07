@@ -4,9 +4,14 @@ import styles from "./Leaderboard.module.css";
 import { useLeaderboard } from "../../hooks/useLeaderboard";
 import Icon from "../../components/Icon/Icon";
 import Tooltip from "../Tooltip/Tooltip";
+
+const achivments = [
+  { id: 1, message: "Игра пройдена в сложном режиме", earned: "puzzle-color", failed: "puzzle-shape" },
+  { id: 2, message: "Игра пройдена без суперсил", earned: "magic-ball-color", failed: "magic-ball-shape" },
+];
+
 const Leaderboard = () => {
   const { leaders } = useLeaderboard();
-
   return (
     <>
       <div className={classNames(styles.leaderboardCard, styles.leaderboardCardTitle)}>
@@ -22,20 +27,18 @@ const Leaderboard = () => {
               <p className={styles.leaderboardText}>#{index + 1}</p>
               <p className={styles.leaderboardText}>{leader.name}</p>
               <div>
-                {Number(leader.achievements[1]) === 1 ? (
-                  <Tooltip message={"Игра пройдена без супер-сил"}>
-                    <Icon iconName="puzzle-color" width={"32px"} height={"32px"} />
-                  </Tooltip>
-                ) : (
-                  <Icon iconName="puzzle-shape" width={"32px"} height={"32px"} />
-                )}
-                {Number(leader.achievements[1]) === 2 ? (
-                  <Tooltip message={"Игра пройдена без супер-сил"}>
-                    <Icon iconName="magic-ball-color" width={"32px"} height={"32px"} />
-                  </Tooltip>
-                ) : (
-                  <Icon iconName="magic-ball-shape" width={"32px"} height={"32px"} />
-                )}
+                {achivments.map(achivment => {
+                  console.log(leader.achievements);
+                  return (
+                    <Tooltip message={achivment.message}>
+                      <Icon
+                        iconName={leader.achievements.includes(achivment.id) ? achivment.earned : achivment.failed}
+                        width={"32px"}
+                        height={"32px"}
+                      />
+                    </Tooltip>
+                  );
+                })}
               </div>
               <p className={styles.leaderboardText}>{serializeTrackTime(leader.time)}</p>
             </div>

@@ -1,17 +1,20 @@
 import { shuffle } from "lodash";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { generateDeck } from "../../utils/cards";
 import styles from "./Cards.module.css";
 import { EndGameModal } from "../../components/EndGameModal/EndGameModal";
 import { Button } from "../../components/Button/Button";
 import { Card } from "../../components/Card/Card";
 import { getTimerValue } from "../../utils/getTimerValue";
+import Icon from "../Icon/Icon";
 
 // Игра закончилась
 const STATUS_LOST = "STATUS_LOST";
 const STATUS_WON = "STATUS_WON";
 // Идет игра: карты закрыты, игрок может их открыть
 const STATUS_IN_PROGRESS = "STATUS_IN_PROGRESS";
+// Пауза игры: по желанию игрока или использования суперсилы
+const STATUS_PAUSE = "STATUS_PAUSE";
 // Начало игры: игрок видит все карты в течении нескольких секунд
 const STATUS_PREVIEW = "STATUS_PREVIEW";
 
@@ -23,6 +26,10 @@ const STATUS_PREVIEW = "STATUS_PREVIEW";
 export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
   // В cards лежит игровое поле - массив карт и их состояние открыта\закрыта
   const [cards, setCards] = useState([]);
+
+  // Отображаемые пользователю карты
+  const displayedCards = useRef(cards);
+
   // Текущий статус игры
   const [status, setStatus] = useState(STATUS_PREVIEW);
 
@@ -36,6 +43,15 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
 
   // Прерыдущая открытая карта, которую необходимо будет перевернуть обратно
   const [previousCardIndex, setPreviousCardIndex] = useState();
+
+  // Использованы ли суперсилы
+  const [isWithoutPower, setIsWithoutPower] = useState(true);
+
+  // Суперсила Показать все карты
+  const [seeAll, setSeeAll] = useState(true);
+
+  // Суперсила Открыть пару карт
+  // const [openOnePair, setOpenOnePair] = useState(true);
 
   // Стейт для таймера, высчитывается в setInteval на основе gameStartDate и gameEndDate
   const [timer, setTimer] = useState({
@@ -61,6 +77,30 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
     setGameLives(lives > 0 ? lives : 1);
     setStatus(STATUS_PREVIEW);
   }
+
+  // Суперсила "Показать все карты"
+  const handleSeeAll = () => {
+    if (!seeAll) return;
+
+    displayedCards.current = cards.map(card => {
+      return { ...card, open: true };
+    });
+
+    setSeeAll(false);
+    setIsWithoutPower(false);
+    setStatus(STATUS_PAUSE);
+
+    setTimeout(() => {
+      setGameStartDate(current => new Date(current.getTime() + 5000));
+      displayedCards.current = cards;
+      setStatus(STATUS_IN_PROGRESS);
+    }, 5000);
+  };
+
+  // Необходима для работы суперсилы "Показать все карты"
+  useEffect(() => {
+    displayedCards.current = cards;
+  }, [cards]);
 
   /**
    * Обработка основного действия в игре - открытие карты.
@@ -170,13 +210,16 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
   // Обновляем значение таймера в интервале
   useEffect(() => {
     const intervalId = setInterval(() => {
+      if (status === STATUS_PAUSE || status === STATUS_WON || status === STATUS_LOST) return;
       setTimer(getTimerValue(gameStartDate, gameEndDate));
     }, 300);
+
     return () => {
       clearInterval(intervalId);
     };
-  }, [gameStartDate, gameEndDate]);
+  }, [gameStartDate, gameEndDate, status]);
 
+  // Количество жизней
   const hearts = [];
   for (let i = 1; i <= gameLives; i++) {
     hearts.push(<img key={i} className={styles.live} src={`${process.env.PUBLIC_URL}/logo192.png`} alt="live" />);
@@ -205,23 +248,48 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
             </>
           )}
         </div>
-        {/* {status === STATUS_IN_PROGRESS && (
-          <Button
-            onClick={() => {
-              finishGame(STATUS_WON);
-            }}
-          >
-            WIN
-          </Button>
-        )} */}
-        <div className={styles.headerContainer}>
-          <div className={styles.gameLives}>{hearts}</div>
-          {status === STATUS_IN_PROGRESS && <Button onClick={resetGame}>Начать заново</Button>}
-        </div>
+        {status === STATUS_IN_PROGRESS && (
+          <>
+            <div className={styles.powers}>
+              <div className={styles.powerTooltip} onClick={handleSeeAll}>
+                <span className={styles.powerTooltipText}>
+                  <strong>Прозрение</strong>
+                  <br />
+                  На 5 секунд показываются все карты. Таймер длительности игры на это время останавливается.
+                </span>
+                <Icon iconName={"eye"} width={"68px"} height={"68px"} />
+              </div>
+
+              <div className={styles.powerTooltip}>
+                <span className={styles.powerTooltipText}>
+                  <strong>Алохомора</strong>
+                  <br />
+                  Открывается случайная пара карт.
+                </span>
+                <Icon iconName={"cards-pair"} width={"68px"} height={"68px"} />
+              </div>
+
+              <div className={styles.powerTooltipOverlay}></div>
+            </div>
+
+            <Button
+              onClick={() => {
+                finishGame(STATUS_WON);
+              }}
+            >
+              WIN
+            </Button>
+
+            <div className={styles.headerContainer}>
+              <div className={styles.gameLives}>{hearts}</div>
+              <Button onClick={resetGame}>Начать заново</Button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className={styles.cards}>
-        {cards.map(card => (
+        {displayedCards.current.map(card => (
           <Card
             key={card.id}
             onClick={() => openCard(card)}
@@ -239,6 +307,8 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
             isLeaderboard={pairsCount >= 9}
             gameDurationSeconds={timer.seconds}
             gameDurationMinutes={timer.minutes}
+            isOneLive={lives === 1}
+            isWithoutPower={isWithoutPower}
             onClick={resetGame}
           />
         </div>

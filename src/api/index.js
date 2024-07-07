@@ -9,13 +9,13 @@ export async function getLeaderBoard() {
   return result;
 }
 
-export async function setLeader({ name, time, achivments = [] }) {
+export async function setLeader({ name, time, achievements = [] }) {
   let result = await fetch(`https://wedev-api.sky.pro/api/v2/leaderboard`, {
     method: "POST",
     body: JSON.stringify({
       name: name,
       time: time,
-      achivments: achivments,
+      achievements: achievements,
     }),
   });
 

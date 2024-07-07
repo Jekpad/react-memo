@@ -10,7 +10,15 @@ import { setLeader } from "../../api";
 
 import Icon from "../Icon/Icon";
 
-export function EndGameModal({ isWon, isLeaderboard, gameDurationSeconds, gameDurationMinutes, onClick }) {
+export function EndGameModal({
+  isWon,
+  isLeaderboard,
+  gameDurationSeconds,
+  gameDurationMinutes,
+  isOneLive = false,
+  isWithoutPower = false,
+  onClick,
+}) {
   const [userName, setUserName] = useState("");
   const [dataSave, setDataSave] = useState(false);
   const navigate = useNavigate();
@@ -33,9 +41,14 @@ export function EndGameModal({ isWon, isLeaderboard, gameDurationSeconds, gameDu
     }
 
     try {
+      let achievements = [];
+      if (isOneLive) achievements.push(1);
+      if (isWithoutPower) achievements.push(2);
+
       await setLeader({
         name: userName.length !== 0 ? userName : "Пользователь",
         time: parseInt(gameDurationMinutes * 60 + gameDurationSeconds),
+        achievements: achievements,
       });
       setDataSave(true);
       onClick();
