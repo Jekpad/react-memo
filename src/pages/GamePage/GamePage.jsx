@@ -9,7 +9,7 @@ export function GamePage() {
 
   return (
     <>
-      <Cards pairsCount={parseInt(pairsCount, 10)} previewSeconds={0} lives={parseInt(lives, 10)}></Cards>
+      <Cards pairsCount={parseInt(pairsCount, 10)} previewSeconds={5} lives={parseInt(lives, 10)}></Cards>
     </>
   );
 }
