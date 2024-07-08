@@ -129,6 +129,10 @@
   display: block;
 }
 
+.powerUsed {
+  filter: grayscale(1);
+}
+
 .gameLives {
   display: flex;
   flex-flow: row nowrap;

@@ -7,6 +7,7 @@ import { Button } from "../../components/Button/Button";
 import { Card } from "../../components/Card/Card";
 import { getTimerValue } from "../../utils/getTimerValue";
 import Icon from "../Icon/Icon";
+import classNames from "classnames";
 
 // Игра закончилась
 const STATUS_LOST = "STATUS_LOST";
@@ -51,7 +52,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
   const [seeAll, setSeeAll] = useState(true);
 
   // Суперсила Открыть пару карт
-  // const [openOnePair, setOpenOnePair] = useState(true);
+  const [openOnePair, setOpenOnePair] = useState(true);
 
   // Стейт для таймера, высчитывается в setInteval на основе gameStartDate и gameEndDate
   const [timer, setTimer] = useState({
@@ -97,6 +98,32 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
     }, 5000);
   };
 
+  const handleOpenOnePair = () => {
+    if (!openOnePair) return;
+
+    let newCards;
+    for (;;) {
+      const cardToOpen = cards[Math.floor(Math.random() * cards.length)];
+      const cardToOpenIndex = cards.findIndex(card => card.id === cardToOpen.id);
+
+      if (!cardToOpen.open) {
+        newCards = cards.map((card, index) => {
+          if (index === cardToOpenIndex) return { ...card, open: true };
+          if (card.rank === cardToOpen.rank && card.suit === cardToOpen.suit) return { ...card, open: true };
+          return card;
+        });
+
+        setCards(newCards);
+
+        break;
+      }
+    }
+
+    setOpenOnePair(false);
+    setIsWithoutPower(false);
+    if (newCards.every(card => card.open)) finishGame(STATUS_WON);
+  };
+
   // Необходима для работы суперсилы "Показать все карты"
   useEffect(() => {
     displayedCards.current = cards;
@@ -111,9 +138,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
    */
   const openCard = clickedCard => {
     // Если карта уже открыта, то ничего не делаем
-    if (clickedCard.open) {
-      return;
-    }
+    if (clickedCard.open) return;
 
     let currentIndex = null;
     // Игровое поле после открытия кликнутой карты
@@ -156,7 +181,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
     });
 
     const playerLost = openCardsWithoutPair.length >= 2;
-    // "Игрок проиграл", т.к на поле есть две открытые карты без пары
+    // -Жизнь, т.к на поле есть две открытые карты без пары
     if (playerLost) {
       const newCards = [...cards];
       const firstCard = { ...newCards[currentIndex], open: false };
@@ -169,6 +194,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
         setCards(newCards);
         setPreviousCardIndex(null);
 
+        // Игрок проиграл, т.к. закончились жизни
         if (gameLives - 1 === 0) {
           finishGame(STATUS_LOST);
           return;
@@ -251,16 +277,22 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
         {[STATUS_IN_PROGRESS, STATUS_PAUSE].includes(status) && (
           <>
             <div className={styles.powers}>
-              <div className={styles.powerTooltip} onClick={handleSeeAll}>
+              <div
+                className={classNames({ [styles.powerTooltip]: true, [styles.powerUsed]: !seeAll })}
+                onClick={handleSeeAll}
+              >
                 <span className={styles.powerTooltipText}>
                   <strong>Прозрение</strong>
                   <br />
                   На 5 секунд показываются все карты. Таймер длительности игры на это время останавливается.
                 </span>
-                <Icon iconName={"eye"} width={"68px"} height={"68px"} />
+                <Icon className={seeAll && styles.powerUsed} iconName={"eye"} width={"68px"} height={"68px"} />
               </div>
 
-              <div className={styles.powerTooltip}>
+              <div
+                className={classNames({ [styles.powerTooltip]: true, [styles.powerUsed]: !openOnePair })}
+                onClick={handleOpenOnePair}
+              >
                 <span className={styles.powerTooltipText}>
                   <strong>Алохомора</strong>
                   <br />
