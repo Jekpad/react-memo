@@ -99,7 +99,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
 
     setTimeout(() => {
       setGameStartDate(current => new Date(current.getTime() + 5000));
-      setCards(cards => cards); // Т.к. карточки могут измениться за это время
+      displayedCards.current = cards;
       setStatus(STATUS_IN_PROGRESS);
     }, 5000);
   };
