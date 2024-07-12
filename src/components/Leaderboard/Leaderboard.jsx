@@ -28,14 +28,12 @@ const Leaderboard = () => {
               <p className={styles.leaderboardText}>{leader.name}</p>
               <div>
                 {achivments.map(achivment => {
-                  console.log(leader.achievements);
+                  const earned = leader.achievements.includes(achivment.id);
+
+                  if (!earned) return <Icon iconName={achivment.failed} width={"32px"} height={"32px"} />;
                   return (
                     <Tooltip message={achivment.message}>
-                      <Icon
-                        iconName={leader.achievements.includes(achivment.id) ? achivment.earned : achivment.failed}
-                        width={"32px"}
-                        height={"32px"}
-                      />
+                      <Icon iconName={achivment.earned} width={"32px"} height={"32px"} />
                     </Tooltip>
                   );
                 })}
