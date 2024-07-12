@@ -64,19 +64,25 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
     setGameEndDate(new Date());
     setStatus(status);
   }
+
   function startGame() {
     const startDate = new Date();
     setGameEndDate(null);
     setGameStartDate(startDate);
     setTimer(getTimerValue(startDate, null));
     setStatus(STATUS_IN_PROGRESS);
+    setSeeAll(true);
+    setOpenOnePair(true);
   }
+
   function resetGame() {
     setGameStartDate(null);
     setGameEndDate(null);
     setTimer(getTimerValue(null, null));
-    setGameLives(lives > 0 ? lives : 1);
+    setGameLives(lives);
     setStatus(STATUS_PREVIEW);
+    setSeeAll(true);
+    setOpenOnePair(true);
   }
 
   // Суперсила "Показать все карты"
