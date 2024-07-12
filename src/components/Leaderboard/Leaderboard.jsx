@@ -26,13 +26,13 @@ const Leaderboard = () => {
             <div className={styles.leaderboardCard} key={index}>
               <p className={styles.leaderboardText}>#{index + 1}</p>
               <p className={styles.leaderboardText}>{leader.name}</p>
-              <div>
-                {achivments.map(achivment => {
+              <div className={styles.leaderboardAchivments}>
+                {achivments.map((achivment, index) => {
                   const earned = leader.achievements.includes(achivment.id);
 
-                  if (!earned) return <Icon iconName={achivment.failed} width={"32px"} height={"32px"} />;
+                  if (!earned) return <Icon key={index} iconName={achivment.failed} width={"32px"} height={"32px"} />;
                   return (
-                    <Tooltip message={achivment.message}>
+                    <Tooltip key={index} message={achivment.message}>
                       <Icon iconName={achivment.earned} width={"32px"} height={"32px"} />
                     </Tooltip>
                   );
