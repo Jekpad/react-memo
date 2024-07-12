@@ -35,6 +35,11 @@ export function EndGameModal({
       return;
     }
 
+    if (userName.trim().length < 1) {
+      alert("Пожалуйста, укажите имя прежде чем продолжить");
+      return;
+    }
+
     if (dataSave) {
       onClick();
       return;
