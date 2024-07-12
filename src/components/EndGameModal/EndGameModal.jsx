@@ -9,6 +9,7 @@ import { useState } from "react";
 import { setLeader } from "../../api";
 
 import Icon from "../Icon/Icon";
+import { sanitizeValue } from "../../utils/sanitizeValue";
 
 export function EndGameModal({
   isWon,
@@ -34,8 +35,8 @@ export function EndGameModal({
       onClick();
       return;
     }
-
-    if (userName.trim().length < 1) {
+    const clearUserName = sanitizeValue(userName);
+    if (clearUserName.length < 1) {
       alert("Пожалуйста, укажите имя прежде чем продолжить");
       return;
     }
@@ -51,7 +52,7 @@ export function EndGameModal({
       if (isWithoutPower) achievements.push(2);
 
       await setLeader({
-        name: userName.length !== 0 ? userName : "Пользователь",
+        name: clearUserName,
         time: parseInt(gameDurationMinutes * 60 + gameDurationSeconds),
         achievements: achievements,
       });
