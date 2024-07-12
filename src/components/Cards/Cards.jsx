@@ -99,11 +99,17 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
 
     setTimeout(() => {
       setGameStartDate(current => new Date(current.getTime() + 5000));
-      displayedCards.current = cards;
+
+      setCards(cards => {
+        displayedCards.current = cards;
+        return cards;
+      });
+
       setStatus(STATUS_IN_PROGRESS);
     }, 5000);
   };
 
+  // Суперсила "Открыть пару карт"
   const handleOpenOnePair = () => {
     if (!openOnePair) return;
 
