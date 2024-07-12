@@ -1,11 +1,7 @@
-import sprite from "./sprites.svg";
+const Icon = ({ iconName, width = 20, height = 20 }) => {
+  const iconPath = require(`../../assets/icons/${iconName}.svg`);
 
-const Icon = ({ iconName, width = 20, height = 20, color }) => {
-  return (
-    <svg width={width} height={height} style={{ color: color }}>
-      <use href={`${sprite}#${iconName}`} xlinkHref={`${sprite}#${iconName}`}></use>
-    </svg>
-  );
+  return <img src={iconPath} alt={iconName} width={width} height={height} />;
 };
 
 export default Icon;
