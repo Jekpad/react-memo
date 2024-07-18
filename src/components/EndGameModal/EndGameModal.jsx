@@ -9,8 +9,17 @@ import { useState } from "react";
 import { setLeader } from "../../api";
 
 import Icon from "../Icon/Icon";
+import { sanitizeValue } from "../../utils/sanitizeValue";
 
-export function EndGameModal({ isWon, isLeaderboard, gameDurationSeconds, gameDurationMinutes, onClick }) {
+export function EndGameModal({
+  isWon,
+  isLeaderboard,
+  gameDurationSeconds,
+  gameDurationMinutes,
+  isOneLive = false,
+  isWithoutPower = false,
+  onClick,
+}) {
   const [userName, setUserName] = useState("");
   const [dataSave, setDataSave] = useState(false);
   const navigate = useNavigate();
@@ -26,6 +35,11 @@ export function EndGameModal({ isWon, isLeaderboard, gameDurationSeconds, gameDu
       onClick();
       return;
     }
+    const clearUserName = sanitizeValue(userName);
+    if (clearUserName.length < 1) {
+      alert("Пожалуйста, укажите имя прежде чем продолжить");
+      return;
+    }
 
     if (dataSave) {
       onClick();
@@ -33,9 +47,14 @@ export function EndGameModal({ isWon, isLeaderboard, gameDurationSeconds, gameDu
     }
 
     try {
+      let achievements = [];
+      if (isOneLive) achievements.push(1);
+      if (isWithoutPower) achievements.push(2);
+
       await setLeader({
-        name: userName.length !== 0 ? userName : "Пользователь",
+        name: clearUserName,
         time: parseInt(gameDurationMinutes * 60 + gameDurationSeconds),
+        achievements: achievements,
       });
       setDataSave(true);
       onClick();
@@ -76,7 +95,7 @@ export function EndGameModal({ isWon, isLeaderboard, gameDurationSeconds, gameDu
                 })
               }
             >
-              <Icon iconName={dataSave ? "thumb_up" : "save"} width={20} height={20} color={"#fff"} />
+              <Icon iconName={dataSave ? "thumb_up" : "save"} width={"25px"} height={"25px"} color={"#fff"} />
               {dataSave ? "Сохранено" : "Сохранить"}
             </Button>
             <Button onClick={() => saveResult(() => navigate("/leaderboard"))}>К лидерборду</Button>

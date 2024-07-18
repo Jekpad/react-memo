@@ -1,17 +1,21 @@
 import { shuffle } from "lodash";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { generateDeck } from "../../utils/cards";
 import styles from "./Cards.module.css";
 import { EndGameModal } from "../../components/EndGameModal/EndGameModal";
 import { Button } from "../../components/Button/Button";
 import { Card } from "../../components/Card/Card";
 import { getTimerValue } from "../../utils/getTimerValue";
+import Icon from "../Icon/Icon";
+import classNames from "classnames";
 
 // Игра закончилась
 const STATUS_LOST = "STATUS_LOST";
 const STATUS_WON = "STATUS_WON";
 // Идет игра: карты закрыты, игрок может их открыть
 const STATUS_IN_PROGRESS = "STATUS_IN_PROGRESS";
+// Пауза игры: по желанию игрока или использования суперсилы
+const STATUS_PAUSE = "STATUS_PAUSE";
 // Начало игры: игрок видит все карты в течении нескольких секунд
 const STATUS_PREVIEW = "STATUS_PREVIEW";
 
@@ -23,6 +27,10 @@ const STATUS_PREVIEW = "STATUS_PREVIEW";
 export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
   // В cards лежит игровое поле - массив карт и их состояние открыта\закрыта
   const [cards, setCards] = useState([]);
+
+  // Отображаемые пользователю карты
+  const displayedCards = useRef(cards);
+
   // Текущий статус игры
   const [status, setStatus] = useState(STATUS_PREVIEW);
 
@@ -37,6 +45,15 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
   // Прерыдущая открытая карта, которую необходимо будет перевернуть обратно
   const [previousCardIndex, setPreviousCardIndex] = useState();
 
+  // Использованы ли суперсилы
+  const [isWithoutPower, setIsWithoutPower] = useState(true);
+
+  // Суперсила Показать все карты
+  const [seeAll, setSeeAll] = useState(true);
+
+  // Суперсила Открыть пару карт
+  const [openOnePair, setOpenOnePair] = useState(true);
+
   // Стейт для таймера, высчитывается в setInteval на основе gameStartDate и gameEndDate
   const [timer, setTimer] = useState({
     seconds: 0,
@@ -47,20 +64,82 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
     setGameEndDate(new Date());
     setStatus(status);
   }
+
   function startGame() {
     const startDate = new Date();
     setGameEndDate(null);
     setGameStartDate(startDate);
     setTimer(getTimerValue(startDate, null));
     setStatus(STATUS_IN_PROGRESS);
+    setSeeAll(true);
+    setOpenOnePair(true);
   }
+
   function resetGame() {
     setGameStartDate(null);
     setGameEndDate(null);
     setTimer(getTimerValue(null, null));
-    setGameLives(lives > 0 ? lives : 1);
+    setGameLives(lives);
     setStatus(STATUS_PREVIEW);
+    setSeeAll(true);
+    setOpenOnePair(true);
   }
+
+  // Суперсила "Показать все карты"
+  const handleSeeAll = () => {
+    if (!seeAll) return;
+
+    displayedCards.current = cards.map(card => {
+      return { ...card, open: true };
+    });
+
+    setSeeAll(false);
+    setIsWithoutPower(false);
+    setStatus(STATUS_PAUSE);
+
+    setTimeout(() => {
+      setGameStartDate(current => new Date(current.getTime() + 5000));
+
+      setCards(cards => {
+        displayedCards.current = cards;
+        return cards;
+      });
+
+      setStatus(STATUS_IN_PROGRESS);
+    }, 5000);
+  };
+
+  // Суперсила "Открыть пару карт"
+  const handleOpenOnePair = () => {
+    if (!openOnePair) return;
+
+    let newCards;
+    for (;;) {
+      const cardToOpen = cards[Math.floor(Math.random() * cards.length)];
+      const cardToOpenIndex = cards.findIndex(card => card.id === cardToOpen.id);
+
+      if (!cardToOpen.open) {
+        newCards = cards.map((card, index) => {
+          if (index === cardToOpenIndex) return { ...card, open: true };
+          if (card.rank === cardToOpen.rank && card.suit === cardToOpen.suit) return { ...card, open: true };
+          return card;
+        });
+
+        setCards(newCards);
+
+        break;
+      }
+    }
+
+    setOpenOnePair(false);
+    setIsWithoutPower(false);
+    if (newCards.every(card => card.open)) finishGame(STATUS_WON);
+  };
+
+  // Необходима для работы суперсилы "Показать все карты"
+  useEffect(() => {
+    displayedCards.current = cards;
+  }, [cards]);
 
   /**
    * Обработка основного действия в игре - открытие карты.
@@ -71,9 +150,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
    */
   const openCard = clickedCard => {
     // Если карта уже открыта, то ничего не делаем
-    if (clickedCard.open) {
-      return;
-    }
+    if (clickedCard.open) return;
 
     let currentIndex = null;
     // Игровое поле после открытия кликнутой карты
@@ -116,7 +193,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
     });
 
     const playerLost = openCardsWithoutPair.length >= 2;
-    // "Игрок проиграл", т.к на поле есть две открытые карты без пары
+    // -Жизнь, т.к на поле есть две открытые карты без пары
     if (playerLost) {
       const newCards = [...cards];
       const firstCard = { ...newCards[currentIndex], open: false };
@@ -129,6 +206,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
         setCards(newCards);
         setPreviousCardIndex(null);
 
+        // Игрок проиграл, т.к. закончились жизни
         if (gameLives - 1 === 0) {
           finishGame(STATUS_LOST);
           return;
@@ -170,13 +248,16 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
   // Обновляем значение таймера в интервале
   useEffect(() => {
     const intervalId = setInterval(() => {
+      if ([STATUS_PAUSE, STATUS_WON, STATUS_LOST].includes(status)) return;
       setTimer(getTimerValue(gameStartDate, gameEndDate));
     }, 300);
+
     return () => {
       clearInterval(intervalId);
     };
-  }, [gameStartDate, gameEndDate]);
+  }, [gameStartDate, gameEndDate, status]);
 
+  // Количество жизней
   const hearts = [];
   for (let i = 1; i <= gameLives; i++) {
     hearts.push(<img key={i} className={styles.live} src={`${process.env.PUBLIC_URL}/logo192.png`} alt="live" />);
@@ -205,23 +286,54 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
             </>
           )}
         </div>
-        {/* {status === STATUS_IN_PROGRESS && (
-          <Button
-            onClick={() => {
-              finishGame(STATUS_WON);
-            }}
-          >
-            WIN
-          </Button>
-        )} */}
-        <div className={styles.headerContainer}>
-          <div className={styles.gameLives}>{hearts}</div>
-          {status === STATUS_IN_PROGRESS && <Button onClick={resetGame}>Начать заново</Button>}
-        </div>
+        {[STATUS_IN_PROGRESS, STATUS_PAUSE].includes(status) && (
+          <>
+            <div className={styles.powers}>
+              <div
+                className={classNames({ [styles.powerTooltip]: true, [styles.powerUsed]: !seeAll })}
+                onClick={handleSeeAll}
+              >
+                <span className={styles.powerTooltipText}>
+                  <strong>Прозрение</strong>
+                  <br />
+                  На 5 секунд показываются все карты. Таймер длительности игры на это время останавливается.
+                </span>
+                <Icon className={seeAll && styles.powerUsed} iconName={"eye"} width={"68px"} height={"68px"} />
+              </div>
+
+              <div
+                className={classNames({ [styles.powerTooltip]: true, [styles.powerUsed]: !openOnePair })}
+                onClick={handleOpenOnePair}
+              >
+                <span className={styles.powerTooltipText}>
+                  <strong>Алохомора</strong>
+                  <br />
+                  Открывается случайная пара карт.
+                </span>
+                <Icon iconName={"cards-pair"} width={"68px"} height={"68px"} />
+              </div>
+
+              <div className={styles.powerTooltipOverlay}></div>
+            </div>
+
+            <Button
+              onClick={() => {
+                finishGame(STATUS_WON);
+              }}
+            >
+              WIN
+            </Button>
+
+            <div className={styles.headerContainer}>
+              <div className={styles.gameLives}>{hearts}</div>
+              <Button onClick={resetGame}>Начать заново</Button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className={styles.cards}>
-        {cards.map(card => (
+        {displayedCards.current.map(card => (
           <Card
             key={card.id}
             onClick={() => openCard(card)}
@@ -239,6 +351,8 @@ export function Cards({ pairsCount = 3, previewSeconds = 1, lives = 1 }) {
             isLeaderboard={pairsCount >= 9}
             gameDurationSeconds={timer.seconds}
             gameDurationMinutes={timer.minutes}
+            isOneLive={lives === 1}
+            isWithoutPower={isWithoutPower}
             onClick={resetGame}
           />
         </div>
